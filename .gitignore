@@ -1,0 +1,7 @@
+output/
+input/
+.env
+Pipfile.lock
+*.db
+logs/
+src/__pycache__

@@ -4,7 +4,7 @@
 # import collections
 import json
 import os
-# import uuid
+import uuid
 import time
 import duckdb
 
@@ -32,6 +32,11 @@ mapTab = 'mappings'
 viewTables = f"{mapTab}Tables"
 viewPK = f"{mapTab}PkCols"
 
+partNameMap = dict (l0 = 'viewObjectModelTop'
+                    ,l1 = 'viewObjectModel'
+                    ,l2 = 'viewObjectModelService'
+                    ,l3 = 'viewObjectName'
+                    )
 
 # UUID_WILDCARD : str = '-'.join(["\u2252"*x for x in [8,4,4,4,12]]) # UUID
 
@@ -40,6 +45,7 @@ TIMER_CALL      : int  = 0
 OUTPUT_TIMINGS  : bool = True
 
 MAP_FILENAME : Path = Path.cwd().joinpath(os.environ.get('FSCM_MAP_FILENAME', 'FSCM_database_mapping.xlsx'))
+DEBUG_SQL_TO_JSON : bool = (str(os.environ.get('FSCM_DEBUG_JSON',0)) == '1')
 
 
 def getSubPath (fileName : str,ensureExists : bool = False):
@@ -68,9 +74,6 @@ def hammerTime(func):
         TIMER_CALL += 1
         thisCall = TIMER_CALL
         t1 = time.time()
-
-
-
         result = func(*args, **kwargs)
         t2 = time.time()
         timeDisp = f"{(t2-t1):.3f}s".rjust(8)
@@ -160,11 +163,33 @@ def repopulateMapping ():
                              ,subset        = yesNoCols
                              ,ignore_index  = True
                              ).reset_index(drop = True)
-    db = connect(readOnly=False)
+
+    viewObject = 'viewObject'
+    viewObjCols = []
+    for p in range(4):
+        viewObjCols.append (thisCol := partNameMap.get(f"l{p}",f'viewObject_{(p+1)}'))
+        def getThePart (theVal, thePart):
+            parts = theVal.split('.')
+            if ((thePart == 2 and len(parts) == 3) or thePart < 0
+                ):
+                retval = ""
+            else:
+                try:
+                    retval = parts[thePart]
+                except IndexError:
+                    retval = parts[-1]
+            return retval
+        mapping[thisCol] = mapping.apply(lambda x: getThePart (x[viewObject],p)
+                                        ,axis=1
+                                        )
+
+    mapping = mapping.fillna(value = '', axis = 'rows')
+
     try:
+        db = connect(readOnly=False)
         doTable (tableName  = mapTab
                 ,data       = mapping
-                ,conn = db
+                ,conn       = db
                 )
 
         viewCols = [c for c in mapping.columns.values.tolist() if c not in yesNoCols]
@@ -174,8 +199,9 @@ def repopulateMapping ():
                 ,conn     = db
                 )
 
+        viewObjColSel = ','.join([f"t.{c}" for c in viewObjCols])
         doView  (viewName = viewTables
-                ,sql      = f"SELECT t.viewObject, COUNT(*) colCnt, CAST(SUM(t.primaryKeyColumn) AS BIGINT) colCntPK FROM {mapTab} t GROUP BY t.viewObject"
+                ,sql      = f"SELECT {viewObjColSel}, COUNT(*) colCnt, CAST(SUM(t.primaryKeyColumn) AS BIGINT) colCntPK FROM {mapTab} t GROUP BY {viewObjColSel}"
                 ,conn     = db
                 )
         _getPKCols(db)
@@ -184,26 +210,32 @@ def repopulateMapping ():
 
 
 def _getPKCols(conn : duckdb.DuckDBPyConnection = None):
-    thisConnect = not isinstance(conn,duckdb.DuckDBPyConnection)
-    if thisConnect:
-        conn = connect()
 
-    try:
-        cols = conn.execute(f"SELECT * FROM {viewPK}").fetchdf()
+    cols = selectAll (objectName = viewPK
+                     ,conn       = conn
+                     )
 
+    partNameCols = list(partNameMap.values())
+    # grpDict = {k : Non}
 
-        # .to_dict('records')[0:10]
-        # print (json.dumps(tabs,indent=2))
-    finally:
-        if thisConnect:
-            conn.close()
+    def dictFromStuff (theName, theDF):
+        cols = theDF['viewObjectAttribute'].to_list()
+        theDict = {p : theName[ix] for ix, p in enumerate(partNameCols) if theName[ix]}
+        theDict['colCnt'] = len(cols)
+        theDict['cols']   = cols
+        return theDict
 
-    grp = [dict(viewObject = name[0]
-               ,cols =  pkCols['viewObjectAttribute'].to_list()
-               )
-            for name,pkCols in cols.groupby(['viewObject'])
+    # grp = [dict(viewObject = name[0]
+    #            ,cols =  pkCols['viewObjectAttribute'].to_list()
+    #            )
+    grp = [dictFromStuff(name, pkCols)
+            for name,pkCols in cols.groupby(partNameCols)
           ]
-
+    if DEBUG_SQL_TO_JSON:
+        grpDebug = deepcopy(grp)
+        for d in grpDebug:
+            d['cols'] = ', '.join(d['cols'])
+        writeIt (grpDebug,'pkCols')
     writeExcelSingle    (data        = grp
                         ,outPath     = getSubPath('pkCols')
                         )
@@ -222,12 +254,61 @@ def connect (readOnly : int = True):
                             ,read_only = readOnly
                             )
 
+def selectAll (objectName : str
+              ,conn       : duckdb.DuckDBPyConnection = None
+              ):
+    return selectCols (objectName = objectName
+                      ,cols       = None
+                      ,conn       = conn
+                      )
+def getDummyAlias ():
+    return f"_{str(uuid.uuid1()).split('-')[0]}"
+
+
+def selectCols (objectName : str
+               ,cols       : Union[str,list]
+               ,conn       : duckdb.DuckDBPyConnection = None
+               ):
+    if not cols:
+        cols = ['*',]
+    elif isinstance(cols,str):
+        cols = [cols,]
+    assert isinstance(cols,list), f"cols expected to be a list (not {type(cols).__name__})"
+
+    alias = getDummyAlias()
+
+    cols = [f"{alias}.{c}" for c in cols]
+
+    return selectSQL (sql  = f"SELECT {','.join(cols)} FROM {objectName} AS {alias}"
+                     ,conn = conn
+                     )
+
+def selectSQL (sql  : str
+              ,conn : duckdb.DuckDBPyConnection = None
+              ):
+    thisConnect = not isinstance(conn,duckdb.DuckDBPyConnection)
+    if thisConnect:
+        conn = connect()
+
+    try:
+        # print (sql)
+        data = conn.execute(sql).fetchdf().fillna('')
+    finally:
+        if thisConnect:
+            conn.close()
+    return data
+
+
 def doView  (viewName      :   str
             ,sql           :   str
             ,conn          :   duckdb.DuckDBPyConnection
             ):
     conn.sql(f'DROP VIEW IF EXISTS "{viewName}"')
     conn.sql(f'CREATE VIEW "{viewName}" AS {sql}')
+    if DEBUG_SQL_TO_JSON:
+        writeIt (selectAll(viewName,conn)
+                ,viewName
+                )
 
 def doTable (tableName      :   str
             ,data           :   Union[list,pd.DataFrame]
@@ -245,6 +326,10 @@ def doTable (tableName      :   str
         my_df = getDataFrame(data)
     conn.sql(f'CREATE TABLE "{tableName}" AS SELECT * FROM my_df')
     conn.commit()
+    if DEBUG_SQL_TO_JSON:
+        writeIt (selectAll(tableName,conn)
+                ,tableName
+                )
     if thisConnect:
         conn.close()
 

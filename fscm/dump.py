@@ -199,17 +199,19 @@ def writeIt(d, filename: str, dated: bool = False, simplifyRows : bool = True):
         thePath = thePath.with_suffix('.json')
 
     data = deepcopy(d)
+
+
     if simplifyRows:
         if isinstance(data,pd.DataFrame):
             try:
-                data = pd.DataFrame(simplifyRows(data.to_dict(orient='records')))
+                data = pd.DataFrame(simplify_rows(data.to_dict(orient='records'))).fillna('')
             except:
                 ...
         else:
-            try:
-                data = simplifyRows(data)
-            except TypeError:
-                ...
+            # try:
+            data = simplify_rows(data)
+            # except TypeError:
+            #     raise TypeError (type(data))
 
     if thePath.suffix.lower() in ('.xls','.xlsx'):
         _ = writeExcelSingle (data = data, outPath = thePath)
@@ -254,20 +256,22 @@ def clean_empties(value: dict | list) -> dict | list:
     return __cleanEmpties (value)
 
 
-def simplifyRows    (theList       :   list
+def simplify_rows   (theList       :   list
                     ,cleanEmpties  :   bool = True
                     ):
     outputList = []
     inputIsDict = isinstance(theList,dict)
     if isinstance(theList,dict):
         theList = [theList,]
-    assert isinstance(theList,list)
+    elif isinstance(theList,set):
+        theList = list(theList)
+    assert isinstance(theList,list), f"theList expected to be type list (not {type(theList).__name__})"
     for row in theList:
-        assert isinstance(row,dict)
-        def addIt   (dict_     : dict
+        def doDict  (dict_     : dict
                     ,colPrefix : str  = ''
                     ,thisDict  : dict = {}
                     ):
+            assert isinstance(dict_,dict)
             for k, v in [(k,v) for k,v in dict_.items()]:
                 thisColName = '_'.join([v for v in [colPrefix,k] if v])
                 if isinstance(v,dict):
@@ -282,7 +286,7 @@ def simplifyRows    (theList       :   list
                 else:
                     thisDict[thisColName] = v
             return thisDict
-        outputList.append (addIt (row))
+        outputList.append (row if not isinstance(row,dict) else doDict(row))
     if cleanEmpties:
         outputList = clean_empties(outputList)
     if inputIsDict and len(outputList) == 1:

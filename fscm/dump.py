@@ -92,7 +92,12 @@ def dumpy (d,indent : int = 2):
         data = d
     if isinstance(data,pd.DataFrame):
         data = data.to_dict(orient='records')
-    return json.dumps(data, indent=indent, cls=ComplexEncoder)
+    output = json.dumps(data, indent=indent, cls=ComplexEncoder)
+    sizeMB = len(output)/(1000*1000)
+    if sizeMB > 100:
+        # try to keep the file under 100MB
+        output = json.dumps(data, cls=ComplexEncoder)
+    return output
 
 
 def printIt(d,indent : int = 2):
@@ -216,7 +221,11 @@ def writeIt(d, filename: str, dated: bool = False, simplifyRows : bool = True):
     if thePath.suffix.lower() in ('.xls','.xlsx'):
         _ = writeExcelSingle (data = data, outPath = thePath)
     else:
-        thePath.write_text(dumpy(data))
+        theOutput = dumpy(data)
+
+        if (sizeMB := round(len(theOutput)/(1000*1000),1)) >= 100:
+            print (f"Potential issue if pushing to GitHub. {thePath} is {sizeMB}MB.")
+        thePath.write_text(theOutput)
     return thePath
 
 

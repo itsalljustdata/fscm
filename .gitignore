@@ -1,9 +1,4 @@
-output/
-input/
 logs/
-# .env
-# *.db
 Pipfile.lock
-fscm/__pycache__
 */*.xlsx
 */*.db

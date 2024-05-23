@@ -1,6 +1,7 @@
 output/
 input/
+logs/
 # .env
 # *.db
 Pipfile.lock
-src/__pycache__
+fscm/__pycache__

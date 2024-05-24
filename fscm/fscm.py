@@ -183,7 +183,11 @@ def repopulateMapping ():
                                         ,axis=1
                                         )
 
-    mapping = mapping.fillna(value = '', axis = 'rows')
+    mapping = mapping.fillna('')
+    writeExcelSingle    (data        = mapping.to_dict('records')
+                        ,outPath     = getSubPath(mapTab)
+                        ,dropNACols  = False
+                        )
 
     try:
         db = connect(readOnly=False)
@@ -244,7 +248,8 @@ def _getPKCols(conn : duckdb.DuckDBPyConnection = None):
 @hammerTime
 def getPKCols():
     try:
-        return _getPKCols(conn = (conn := connect()))
+        conn = connect()
+        return _getPKCols(conn = conn)
     finally:
         conn.close()
 

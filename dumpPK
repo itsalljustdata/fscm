@@ -1,0 +1,7 @@
+#!/usr/bin/env pipenv-shebang
+
+from fscm import getPKCols
+
+
+if __name__ == '__main__':
+    getPKCols()

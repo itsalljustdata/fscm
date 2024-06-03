@@ -1,0 +1,10 @@
+pandas
+openpyxl
+arrow
+duckdb
+pyyaml
+pretty-errors
+icecream
+buenavista
+pyarrow
+lxml

@@ -1,0 +1,113 @@
+{
+    "name": "Python3.11",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+    "remoteUser": "vscode",
+    "mounts": [
+        // Mount local resources : initializeCommand.sh will create them if necessary
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.dbt,target=/home/vscode/.dbt,type=bind,consistency=cached",
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.zsh_history,target=/home/vscode/.zsh_history,type=bind,consistency=cached",
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.zshrc,target=/home/vscode/.zshrc,type=bind,consistency=cached"
+    ],
+    "containerEnv": {
+        "TZ": "Australia/Perth",
+        "PYTHONDONTWRITEBYTECODE": "1", // Suppress creation of the __pycache__ folders
+        "DISABLE_UPDATE_PROMPT" : "true", // Disable oh-my-zsh auto update prompt
+        "FSCM_MAP_FILENAME": "FSCM_database_mapping.xlsx",
+        "FSCM_DEBUG_JSON": "1"
+    },
+
+    // initializeCommand
+    // 	A command string or list of command arguments to run on the host machine during initialization, including during container creation and on subsequent starts. The command may run more than once during a given session.
+    //     ⚠️ The command is run wherever the source code is located on the host. For cloud services, this is in the cloud.
+    //
+    // onCreateCommand
+    // 	This command is the first of three (along with updateContentCommand and postCreateCommand) that finalizes container setup when a dev container is created. It and subsequent commands execute inside the container immediately after it has started for the first time.
+    //     Cloud services can use this command when caching or prebuilding a container. This means that it will not typically have access to user-scoped assets or secrets.
+    //
+    // updateContentCommand
+    //     This command is the second of three that finalizes container setup when a dev container is created. It executes inside the container after onCreateCommand whenever new content is available in the source tree during the creation process.
+    //     It will execute at least once, but cloud services will also periodically execute the command to refresh cached or prebuilt containers. Like cloud services using onCreateCommand, it can only take advantage of repository and org scoped secrets or permissions.
+    //
+    // postCreateCommand
+    //     This command is the last of three that finalizes container setup when a dev container is created. It happens after updateContentCommand and once the dev container has been assigned to a user for the first time.
+    //     Cloud services can use this command to take advantage of user specific secrets and permissions.
+    //
+    // postStartCommand
+    //     A command to run each time the container is successfully started.
+    //
+    // postAttachCommand
+    //     A command to run each time a tool has successfully attached to the container.
+
+    "initializeCommand": ".devcontainer/initializeCommand.sh",
+    "onCreateCommand": ".devcontainer/onCreateCommand.sh",
+    "updateContentCommand": ".devcontainer/updateContentCommand.sh",
+    "postCreateCommand": ".devcontainer/postCreateCommand.sh",
+    "postStartCommand": ".devcontainer/postStartCommand.sh",
+    "postAttachCommand": ".devcontainer/postAttachCommand.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.black-formatter",
+                "njpwerner.autodocstring",
+                "innoverio.vscode-dbt-power-user",
+                "bastienboutonnet.vscode-dbt",
+                "henriblancke.vscode-dbt-formatter",
+                "duckdive.dbtdocs",
+                "zaaack.markdown-editor",
+                "yzhang.markdown-all-in-one",
+                "sbierner.github-markdown-preview",
+                "davidanson.vscode-markdownlint",
+                "vscode.json-language-features",
+                "redhat.vscode-yaml",
+                "mhutchie.git-graph",
+                "donjayamanne.githistory",
+                "ms-vscode.azure-repos",
+                "shardulm94.trailing-spaces",
+                "GitHub.remotehub",
+                "ms-vscode.remote-repositories",
+                "ms-vscode.azure-account",
+                "ms-azuretools.vscode-azureresourcegroups",
+                "databricks.databricks",
+                "PascalReitermann93.vscode-yaml-sort"
+            ],
+            "settings": {
+                "[json]": {
+                    "editor.defaultFormatter": "vscode.json-language-features"
+                },
+                "[python]": {
+                    "editor.defaultFormatter": "ms-python.black-formatter",
+                    "editor.formatOnSave": true
+                },
+                "[yaml]": {
+                    "editor.defaultFormatter": "redhat.vscode-yaml"
+                },
+                "black-formatter.interpreter": ["/usr/local/bin/python"],
+                "black-formatter.path": ["/usr/local/py-utils/bin/black"],
+                "dbt.enableNewLineagePanel": true,
+                "dbtDocs.dbtProjectYAMLPaths": ["${containerWorkspaceFolder}/dbt_project.yml"],
+                "editor.detectIndentation": false,
+                "editor.formatOnSave": false,
+                "editor.insertSpaces": true,
+                "editor.tabSize": 4,
+                "files.associations": {
+                    "${containerWorkspaceFolder}/**/*.yaml": "jinja-yaml",
+                    "${containerWorkspaceFolder}/**/*.yml": "jinja-yaml",
+                    "${containerWorkspaceFolder}/**/*.sql": "jinja-sql",
+                    "${containerWorkspaceFolder}/**/docs/**/*.md": "jinja-md"
+                },
+                "files.trimTrailingWhitespace": true,
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+                "python.formatting.provider": "black",
+                "python.showStartPage": false,
+                "python.testing.pytestEnabled": true,
+                "python.testing.pytestPath": "/usr/local/py-utils/bin/pytest"
+            }
+        }
+    }
+}

@@ -1,7 +1,7 @@
-#!/usr/bin/env pipenv-shebang
+#!/usr/local/bin/python
 
-from fscm import repopulateMapping
+import fscm
 
 
 if __name__ == '__main__':
-    repopulateMapping()
+    fscm.repopulateMapping()

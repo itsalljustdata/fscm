@@ -1,4 +1,4 @@
 logs/
-Pipfile.lock
 */*.xlsx
 */*.db
+.devcontainer/log

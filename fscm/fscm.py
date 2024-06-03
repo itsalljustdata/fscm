@@ -1,4 +1,4 @@
-#!/usr/bin/env pipenv-shebang
+#!/usr/local/bin/python3
 
 # import arrow
 # import collections
@@ -20,10 +20,6 @@ from .dump import *
 from copy import deepcopy
 from pathlib import Path
 from typing import Union
-
-# from functools import reduce
-# from multiprocessing.pool import ThreadPool
-# from math import ceil
 
 APPLICATION_ID: str = Path(__file__).name
 
@@ -216,6 +212,7 @@ def repopulateMapping():
 
     try:
         db = connect(readOnly=False)
+
         doTable(tableName=mapTab, data=mapping, conn=db)
 
         viewCols = [c for c in mapping.columns.values.tolist() if c not in yesNoCols]
@@ -230,10 +227,13 @@ def repopulateMapping():
         )
 
         viewObjColSel = ",".join([f"t.{c}" for c in viewObjCols])
+        printIt (viewObjCols)
+        theSQL = f"SELECT {viewObjColSel}, COUNT(*) colCnt, CAST(SUM(t.primaryKeyColumn) AS BIGINT) colCntPK FROM {mapTab} t GROUP BY {viewObjColSel}"
+
         # print (f"{viewTables} {viewObjColSel}")
         doView(
             viewName=viewTables,
-            sql=f"SELECT {viewObjColSel}, COUNT(*) colCnt, CAST(SUM(t.primaryKeyColumn) AS BIGINT) colCntPK FROM {mapTab} t GROUP BY {viewObjColSel}",
+            sql=theSQL,
             conn=db,
         )
 
@@ -246,6 +246,7 @@ def repopulateMapping():
         sqlStr += f"\t)\n"
         sqlStr += f"SELECT\t t.*\n"
         sqlStr += f"\t,v.viewObjectAttribute\n"
+        sqlStr += f"\t,v.databaseTable\n"
         sqlStr += f"\t,v.databaseColumn\n"
         sqlStr += f" FROM\t{viewTables} t\n"
         sqlStr += f"LEFT OUTER JOIN pkCols v\n"
@@ -265,20 +266,35 @@ def repopulateMapping():
 def _getPKCols(conn: duckdb.DuckDBPyConnection = None) -> list:
 
     cols = selectAll(objectName=viewPK,conn=conn)
+    # printIt (list(cols.columns))
 
     partNameCols = list(partNameMap.values())
 
     groupByCols = list(set().union(partNameCols
-                                  ,['colCnt','colCntPK']
+                                  ,['databaseTable','colCnt','colCntPK']
                                   )
                        )
-    dictKeyOrder = ['viewObjectModelTop','viewObjectModel','viewObjectModelService','viewObjectName','colCnt','colCntPK','cols']
+    dictKeyOrder = ['viewObjectModelTop','viewObjectModel','viewObjectModelService','viewObjectName','databaseTable','colCnt','colCntPK','cols','colsDB']
 
     def dictFromStuff(theName, theDF):
+        # printIt (list(theDF.columns))
         cols = theDF["viewObjectAttribute"].to_list()
+        colsDB = theDF["databaseColumn"].to_list()
+        tables = list(set(theDF['databaseTable'].to_list()))
+        if isinstance(tables,list) and len(tables) == 1:
+            tables = tables[0]
         theDict = {p: theName[ix] for ix, p in enumerate(groupByCols)}
         # theDict["colCnt"] = len(cols)
-        theDict["cols"] = None if theDict.get('colCntPK',0) == 0 else cols
+
+        if theDict.get('colCntPK',0) == 0:
+            theDict["cols"] = None
+            theDict["colsDB"] = None
+            theDict["databaseTable"] = None
+        else:
+            theDict["cols"] = cols
+            theDict["colsDB"] = colsDB
+            theDict["databaseTable"] = tables
+
         reorderedDict = {k: theDict[k] for k in dictKeyOrder if k in theDict}
         return reorderedDict
 
@@ -286,11 +302,14 @@ def _getPKCols(conn: duckdb.DuckDBPyConnection = None) -> list:
     #            ,cols =  pkCols['viewObjectAttribute'].to_list()
     #            )
     grp = [dictFromStuff(name, pkCols) for name, pkCols in cols.groupby(groupByCols)]
+    # printIt (grp[0:5])
     if DEBUG_SQL_TO_JSON:
         grpDebug = deepcopy(grp)
         for d in grpDebug:
             d["cols"] = ", ".join(d["cols"])
         writeIt(grpDebug, "pkCols")
+
+    # print (grp.head())
 
     writeExcelSingle(data=grp, outPath=getSubPath("pkCols"))
     return grp

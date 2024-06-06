@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "*"
+openpyxl = "*"
+arrow = "*"
+duckdb = "*"
+pyyaml = "*"
+pretty-errors = "*"
+icecream = "*"
+buenavista = "*"
+pyarrow = "*"
+lxml = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"

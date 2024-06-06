@@ -6,40 +6,43 @@ thisFolder=`dirname ${thisFile}`
 source ${thisFolder}/colourCodes.sh
 msgBegin "${thisFile}"
 
-reqTxt=${thisFolder}/requirements.txt
+# Set shell to zsh
+zshPath=`which zsh`
+if [ ! "${zshPath}" == "" ]; then
+    infoText $USER "setting default shell to" $zshPath
+    sudo chsh -s "${zshPath}" $USER
+    if [ -f "${thisFolder}/zshrc_plugins.sh" ]; then
+        source "${thisFolder}/zshrc_plugins.sh"
+    fi
+fi
+infoText "default shell" "$USER" `grep "^${USER}:" /etc/passwd | awk -F ":" '{print $NF}'`
+
 logDir=${thisFolder}/log
 now=`date +"%Y%m%dT%H%M"`
-logFile="${logDir}/pip.${now}.log"
 
 mkdir -p ${logDir}
 
-if [ -f ${reqTxt} ]; then
-    clockText "Before" "pip install -r ${reqTxt}"
-    infoText "logfile" "${logFile}"
-    pip3 install \
-        --log ${logFile} \
-        --no-input \
-        --no-cache-dir \
-        --disable-pip-version-check \
-        --no-python-version-warning \
-        -r ${reqTxt}
-    clockText "After" "pip install -r ${reqTxt}"
-    infoText "logfile" "${logFile}"
-fi
-
-# Set TZ to Perth
-if [[ "${TZ}" == "" ]]; then
-    infoText "TimeZone" "TZ" "environment variable not set"
-else
-    locn="/usr/share/zoneinfo/"
-    fileName=`find ${locn} -type f -path "${locn}${TZ}" | head -n 1`
-    if [ "${fileName}" != "" ]; then
-        infoText "TimeZone" "Setting to" "${TZ}" "${fileName}"
-        sudo ln -s -f ${fileName} /etc/localtime
-    else
-        infoText "TimeZone" "Cannot find zoneinfo file for TZ" "${locn}" "TZ=\"${TZ}\""
+reqTxt=${thisFolder}/requirements.txt
+pipfile=${CONTAINER_WORKSPACE_FOLDER}/Pipfile
+logFile="${logDir}/pipenv.${now}.log"
+infoText "logfile" "${logFile}"
+if [ -f ${pipfile} ]; then
+    msgBegin "pipenv update" | tee ${logFile}
+    if [ -f ${reqTxt} ]; then
+        infoText "${pipfile}" "exists, removing" "${reqTxt}"
+        rm "${reqTxt}"
     fi
-    ls -al /etc/localtime
+    pipenv update --quiet >> ${logFile} 2> /dev/null
+    msgEnd "pipenv update" | tee ${logFile}
+else
+    if [ -f ${reqTxt} ]; then
+        msgBegin "pipenv install -r ${reqTxt}" | tee ${logFile}
+        pipenv install \
+            --requirements ${reqTxt} \
+            --skip-lock \
+            --quiet >> "${logFile}" 2> /dev/null
+        msgEnd "pipenv install -r ${reqTxt}" | tee -a ${logFile}
+    fi
 fi
 
 # Last command

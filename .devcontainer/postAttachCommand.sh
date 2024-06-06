@@ -10,4 +10,5 @@ msgBegin "${thisFile}"
 # Stuff goes in here
 # .
 
+
 msgEnd "${thisFile}"

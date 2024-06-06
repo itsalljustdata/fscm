@@ -31,7 +31,5 @@ doDir  "${HOME}/.azure"
 doDir  "${HOME}/.dbt"
 doFile "${HOME}/.gitconfig"
 doDir  "${HOME}/.ssh"
-doFile "${HOME}/.zsh_history"
-doFile "${HOME}/.zshrc"
 
 msgEnd ${thisFile}

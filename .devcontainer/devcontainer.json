@@ -8,9 +8,7 @@
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.dbt,target=/home/vscode/.dbt,type=bind,consistency=cached",
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
-        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.zsh_history,target=/home/vscode/.zsh_history,type=bind,consistency=cached",
-        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.zshrc,target=/home/vscode/.zshrc,type=bind,consistency=cached"
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached"
     ],
     "containerEnv": {
         // A set of name-value pairs that sets or overrides environment variables for the container. Environment and pre-defined
@@ -24,6 +22,11 @@
          "TZ": "Australia/Perth"
         ,"PYTHONDONTWRITEBYTECODE": "1" // Suppress creation of the __pycache__ folders
         ,"DISABLE_UPDATE_PROMPT" : "true" // Disable oh-my-zsh auto update prompt
+        ,"PIPENV_CUSTOM_VENV_NAME": "venv"
+        ,"PIPENV_VENV_IN_PROJECT": "1"
+        ,"PIPENV_VERBOSITY": "-1"
+        ,"PIPENV_YES": "1"
+        ,"CONTAINER_WORKSPACE_FOLDER": "${containerWorkspaceFolder}"
     },
     "remoteEnv": {
         //	A set of name-value pairs that sets or overrides environment variables for the devcontainer.json supporting service / tool (or sub-processes like terminals)
@@ -115,12 +118,15 @@
                     "${containerWorkspaceFolder}/**/docs/**/*.md": "jinja-md"
                 },
                 "files.trimTrailingWhitespace": true,
-                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.terminal.activateEnvInCurrentTerminal": true,
+                "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
                 "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
                 "python.formatting.provider": "black",
                 "python.showStartPage": false,
                 "python.testing.pytestEnabled": true,
-                "python.testing.pytestPath": "/usr/local/py-utils/bin/pytest"
+                "python.testing.pytestPath": "/usr/local/py-utils/bin/pytest",
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": { "zsh": { "path": "/bin/zsh" } }
             }
         }
     }

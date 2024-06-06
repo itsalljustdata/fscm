@@ -140,13 +140,13 @@ def getDataFrame(inputData: Union[list, dict, pd.DataFrame]) -> pd.DataFrame:
 
 
 def splitCamelCase(dromedary: str) -> list:
-    return re.sub("([a-z])([A-Z])", r"\1~\2", dromedary).split("~")
+    return re.sub(r"([a-z])([A-Z])", r"\1~\2", dromedary).split("~")
 
 
 def camelCase(phraseIn: str) -> list:
     if not phraseIn:
         return None
-    phrase = re.sub("[^0-9a-zA-Z\s]+", " ", phraseIn)
+    phrase = re.sub(r"[^0-9a-zA-Z\s]+", " ", phraseIn)
     if not phrase:
         return None
     wrds = [w for w in phrase.split(" ") if w]
@@ -306,7 +306,8 @@ def _getPKCols(conn: duckdb.DuckDBPyConnection = None) -> list:
     if DEBUG_SQL_TO_JSON:
         grpDebug = deepcopy(grp)
         for d in grpDebug:
-            d["cols"] = ", ".join(d["cols"])
+            if isinstance(d["cols"],list):
+                d["cols"] = ", ".join(d["cols"])
         writeIt(grpDebug, "pkCols")
 
     # print (grp.head())

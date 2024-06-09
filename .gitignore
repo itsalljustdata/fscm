@@ -2,3 +2,4 @@ logs/
 */*.xlsx
 */*.db
 .devcontainer/log
+Pipfile.lock

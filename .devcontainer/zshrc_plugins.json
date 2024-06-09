@@ -1,0 +1,39 @@
+{
+    "repos": [
+        {
+            "repoDir": "pyvenv-activate",
+            "repoURL": "https://github.com/Intersec/pipenv-activate.git"
+        },
+        {
+            "repoDir": "zsh-history-substring-search",
+            "repoURL": "https://github.com/zsh-users/zsh-history-substring-search"
+        }
+    ],
+    "plugins": [
+        "pyvenv-activate",
+        "pipenv",
+        "debian",
+        "common-aliases",
+        "zsh-history-substring-search",
+        "jsontools",
+        "vscode"
+    ],
+    "calls": [
+        "pyvenv_auto_activate_enable"
+    ]
+}{
+    "calls": [
+        "pyvenv_auto_activate_enable"
+    ],
+    "plugins": [
+        "pyvenv-activate",
+        "pipenv",
+        "dbt",
+        "debian",
+        "azure",
+        "common-aliases",
+        "zsh-history-substring-search",
+        "jsontools",
+        "vscode"
+    ]
+}

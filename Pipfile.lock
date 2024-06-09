@@ -509,7 +509,7 @@
                 "sha256:f870204a840a60da0b12273ef34f7051e98c3b5961b61b0c2c1be6dfd64fbcd3",
                 "sha256:ffa75af20b44f8dba823498024771d5ac50620e6915abac414251bd971b4529f"
             ],
-            "markers": "python_version >= '3.12'",
+            "markers": "python_version >= '3.9'",
             "version": "==1.26.4"
         },
         "openpyxl": {
@@ -715,7 +715,7 @@
                 "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3",
                 "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.9.0.post0"
         },
         "python-dotenv": {
@@ -819,7 +819,7 @@
                 "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
                 "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.16.0"
         },
         "sniffio": {
@@ -832,11 +832,11 @@
         },
         "sqlglot": {
             "hashes": [
-                "sha256:06a716de977b2931792e644c99e5b1353aa7a59a707efd4e6a0e5f9ea743b555",
-                "sha256:b0b45d663dce77c4f7e5a5e5efcbbb49265d7c4965b512e674e93269f42e0874"
+                "sha256:810dedc451e2d4e947effe50eeb6a5e85a6f624053086bb77d0228a45b78e0b7",
+                "sha256:84bddaf24e28d761ea5d3857de2bbb9515f1482799189de54f1c1e8b1bc6147c"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==25.0.2"
+            "version": "==25.0.3"
         },
         "starlette": {
             "hashes": [
@@ -864,11 +864,11 @@
         },
         "typing-extensions": {
             "hashes": [
-                "sha256:6024b58b69089e5a89c347397254e35f1bf02a907728ec7fee9bf0fe837d203a",
-                "sha256:915f5e35ff76f56588223f15fdd5938f9a1cf9195c0de25130c627e4d597f6d1"
+                "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d",
+                "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==4.12.1"
+            "version": "==4.12.2"
         },
         "tzdata": {
             "hashes": [

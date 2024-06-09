@@ -42,7 +42,7 @@ if [ ! "${zshPath}" == "" ]; then
     sudo chsh -s "${zshPath}" $USER
     if [ -f "${thisFolder}/zshrc_plugins.py" ]; then
         pipenv install --dev gitpython
-        pipenv run "${thisFolder}/zshrc_plugins.py"
+        pipenv run python "${thisFolder}/zshrc_plugins.py"
     fi
 fi
 infoText "default shell" "$USER" `grep "^${USER}:" /etc/passwd | awk -F ":" '{print $NF}'`
